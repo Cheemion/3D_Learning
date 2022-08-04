@@ -43,3 +43,20 @@ D3DXVECTOR3 LightClass::GetDirection()
 {
 	return m_direction;
 }
+
+
+D3DXVECTOR4 LightClass::GetAmbientColor()
+{
+	return m_ambientColor;
+}
+
+
+
+
+
+void LightClass::SetAmbientColor(float red, float green, float blue, float alpha)
+{
+	m_ambientColor = D3DXVECTOR4(red, green, blue, alpha);
+	return;
+}
+
