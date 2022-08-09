@@ -13,6 +13,7 @@
 #include "lightshaderclass.h"
 #include "lightclass.h"
 #include "bitmapclass.h"
+#include "textclass.h"
 
 /////////////
 // GLOBALS //
@@ -22,6 +23,9 @@ const bool VSYNC_ENABLED = true;
 const float SCREEN_DEPTH = 1000.0f;
 const float SCREEN_NEAR = 0.1f;
 
+////////////////////////////////////////////////////////////////////////////////
+// Class name: GraphicsClass
+////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: GraphicsClass
 ////////////////////////////////////////////////////////////////////////////////
@@ -35,21 +39,12 @@ public:
 	bool Initialize(int, int, HWND);
 	void Shutdown();
 	bool Frame();
+	bool Render();
 
 private:
 	D3DClass* m_D3D;
-	bool Render();
 	CameraClass* m_Camera;
-	ModelClass* m_Model;
-	ColorShaderClass* m_ColorShader;
-	bool Render(float);
-
-private:
-	TextureShaderClass* m_TextureShader;
-	LightShaderClass* m_LightShader;
-	LightClass* m_Light;
-	BitmapClass* m_Bitmap;
-
+	TextClass* m_Text;
 };
 
 #endif
