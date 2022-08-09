@@ -23,18 +23,17 @@ public:
 
 	bool Initialize(int, int, bool, HWND, bool, float, float);
 	void Shutdown();
-
 	void BeginScene(float, float, float, float);
 	void EndScene();
-
 	ID3D11Device* GetDevice();
 	ID3D11DeviceContext* GetDeviceContext();
-
 	void GetProjectionMatrix(D3DXMATRIX&);
 	void GetWorldMatrix(D3DXMATRIX&);
 	void GetOrthoMatrix(D3DXMATRIX&);
-
 	void GetVideoCardInfo(char*, int&);
+	void TurnZBufferOn();
+	void TurnZBufferOff();
+
 
 private:
 	bool m_vsync_enabled;
@@ -51,6 +50,8 @@ private:
 	D3DXMATRIX m_projectionMatrix;
 	D3DXMATRIX m_worldMatrix;
 	D3DXMATRIX m_orthoMatrix;
+	ID3D11DepthStencilState* m_depthDisabledStencilState;
+
 };
 
 #endif

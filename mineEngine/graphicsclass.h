@@ -12,6 +12,7 @@
 #include "textureshaderclass.h"
 #include "lightshaderclass.h"
 #include "lightclass.h"
+#include "bitmapclass.h"
 
 /////////////
 // GLOBALS //
@@ -47,6 +48,8 @@ private:
 	TextureShaderClass* m_TextureShader;
 	LightShaderClass* m_LightShader;
 	LightClass* m_Light;
+	BitmapClass* m_Bitmap;
+
 };
 
 #endif
