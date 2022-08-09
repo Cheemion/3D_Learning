@@ -4,6 +4,8 @@ SystemClass::SystemClass()
 {
 	m_Input = 0;
 	m_Graphics = 0;
+	m_Timer = 0;
+
 }
 
 SystemClass::SystemClass(const SystemClass& other)
@@ -52,6 +54,24 @@ bool SystemClass::Initialize()
 		return false;
 	}
 
+
+
+	// Create the timer object.
+	m_Timer = new TimerClass;
+	if (!m_Timer)
+	{
+		return false;
+	}
+
+	// Initialize the timer object.
+	result = m_Timer->Initialize();
+	if (!result)
+	{
+		MessageBox(m_hwnd, L"Could not initialize the Timer object.", L"Error", MB_OK);
+		return false;
+	}
+
+
 	return true;
 }
 
@@ -63,6 +83,12 @@ void SystemClass::Shutdown()
 		m_Graphics->Shutdown();
 		delete m_Graphics;
 		m_Graphics = 0;
+	}
+
+	if (m_Timer)
+	{
+		delete m_Timer;
+		m_Timer = 0;
 	}
 
 	// Release the input object.
@@ -123,6 +149,8 @@ bool SystemClass::Frame()
 {
 	bool result;
 
+
+	m_Timer->Frame();
 
 	// Check if the user pressed escape and wants to exit the application.
 	if (m_Input->IsKeyDown(VK_ESCAPE))

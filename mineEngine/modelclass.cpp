@@ -4,8 +4,8 @@ ModelClass::ModelClass()
 {
 	m_vertexBuffer = 0;
 	m_indexBuffer = 0;
-	m_Texture = 0;
 	m_model = 0;
+	m_TextureArray = 0;
 
 }
 
@@ -20,7 +20,7 @@ ModelClass::~ModelClass()
 }
 
 
-bool ModelClass::Initialize(ID3D11Device* device,char* modelFilename, WCHAR* textureFilename)
+bool ModelClass::Initialize(ID3D11Device* device, char* modelFilename, WCHAR* textureFilename1, WCHAR* textureFilename2)
 {
 	bool result;
 	// Load in the model data,
@@ -38,30 +38,14 @@ bool ModelClass::Initialize(ID3D11Device* device,char* modelFilename, WCHAR* tex
 		return false;
 	}
 
-	// Load the texture for this model.
-	result = LoadTexture(device, textureFilename);
+	// Load the textures for this model.
+	result = LoadTextures(device, textureFilename1, textureFilename2);
 	if (!result)
 	{
 		return false;
 	}
 
-
 	return true;
-}
-
-ID3D11ShaderResourceView* ModelClass::GetTexture()
-{
-	return m_Texture->GetTexture();
-}
-void ModelClass::Shutdown()
-{
-	// Release the model texture.
-	ReleaseTexture();
-	// Release the vertex and index buffers.
-	ShutdownBuffers();
-	// Release the model data.
-	ReleaseModel();
-	return;
 }
 
 void ModelClass::Render(ID3D11DeviceContext* deviceContext)
@@ -77,6 +61,27 @@ int ModelClass::GetIndexCount()
 {
 	return m_indexCount;
 }
+
+void ModelClass::ShutdownBuffers()
+{
+	// Release the index buffer.
+	if (m_indexBuffer)
+	{
+		m_indexBuffer->Release();
+		m_indexBuffer = 0;
+	}
+
+	// Release the vertex buffer.
+	if (m_vertexBuffer)
+	{
+		m_vertexBuffer->Release();
+		m_vertexBuffer = 0;
+	}
+
+	return;
+}
+
+
 
 bool ModelClass::InitializeBuffers(ID3D11Device* device) 
 {
@@ -95,6 +100,7 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 	{
 		return false;
 	}
+
 	// Create the index array.
 	indices = new unsigned long[m_indexCount];
 	if (!indices)
@@ -107,8 +113,6 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 	{
 		vertices[i].position = D3DXVECTOR3(m_model[i].x, m_model[i].y, m_model[i].z);
 		vertices[i].texture = D3DXVECTOR2(m_model[i].tu, m_model[i].tv);
-		vertices[i].normal = D3DXVECTOR3(m_model[i].nx, m_model[i].ny, m_model[i].nz);
-
 		indices[i] = i;
 	}
 
@@ -164,27 +168,24 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 	return true;
 
 }
-
-
-void ModelClass::ShutdownBuffers()
+ID3D11ShaderResourceView** ModelClass::GetTextureArray()
 {
-	// Release the index buffer.
-	if (m_indexBuffer)
-	{
-		m_indexBuffer->Release();
-		m_indexBuffer = 0;
-	}
+	return m_TextureArray->GetTextureArray();
+}
+void ModelClass::Shutdown()
+{
 
-	// Release the vertex buffer.
-	if (m_vertexBuffer)
-	{
-		m_vertexBuffer->Release();
-		m_vertexBuffer = 0;
-	}
+	// Release the model textures.
+	ReleaseTextures();
+
+	// Shutdown the vertex and index buffers.
+	ShutdownBuffers();
+
+	// Release the model data.
+	ReleaseModel();
 
 	return;
 }
-
 
 
 void ModelClass::RenderBuffers(ID3D11DeviceContext* deviceContext)
@@ -211,30 +212,21 @@ void ModelClass::RenderBuffers(ID3D11DeviceContext* deviceContext)
 
 
 
-
-
-
-
-
-
-
-
-
-bool ModelClass::LoadTexture(ID3D11Device* device, WCHAR* filename)
+bool ModelClass::LoadTextures(ID3D11Device* device, WCHAR* filename1, WCHAR* filename2)
 {
 	bool result;
 
 
-	// Create the texture object.
-	m_Texture = new TextureClass;
-	if(!m_Texture)
+	// Create the texture array object.
+	m_TextureArray = new TextureArrayClass;
+	if (!m_TextureArray)
 	{
 		return false;
 	}
 
-	// Initialize the texture object.
-	result = m_Texture->Initialize(device, filename);
-	if(!result)
+	// Initialize the texture array object.
+	result = m_TextureArray->Initialize(device, filename1, filename2);
+	if (!result)
 	{
 		return false;
 	}
@@ -242,18 +234,25 @@ bool ModelClass::LoadTexture(ID3D11Device* device, WCHAR* filename)
 	return true;
 }
 
-void ModelClass::ReleaseTexture()
+
+void ModelClass::ReleaseTextures()
 {
-	// Release the texture object.
-	if (m_Texture)
+	// Release the texture array object.
+	if (m_TextureArray)
 	{
-		m_Texture->Shutdown();
-		delete m_Texture;
-		m_Texture = 0;
+		m_TextureArray->Shutdown();
+		delete m_TextureArray;
+		m_TextureArray = 0;
 	}
 
 	return;
 }
+
+
+
+
+
+
 bool ModelClass::LoadModel(char* filename) 
 {
 	ifstream fin;

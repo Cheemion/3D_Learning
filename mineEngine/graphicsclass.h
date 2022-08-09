@@ -14,6 +14,7 @@
 #include "lightclass.h"
 #include "bitmapclass.h"
 #include "textclass.h"
+#include "multitextureshaderclass.h"
 
 /////////////
 // GLOBALS //
@@ -44,7 +45,8 @@ public:
 private:
 	D3DClass* m_D3D;
 	CameraClass* m_Camera;
-	TextClass* m_Text;
+	ModelClass* m_Model;
+	MultiTextureShaderClass* m_MultiTextureShader;
 };
 
 #endif
