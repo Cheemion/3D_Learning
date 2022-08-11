@@ -9,10 +9,11 @@ GraphicsClass::GraphicsClass()
 	m_D3D = 0;
 	m_Camera = 0;
 	m_Model = 0;
-	m_ColorShader = 0;
-	m_TextureShader = 0;
 	m_LightShader = 0;
 	m_Light = 0;
+	m_RenderTexture = 0;
+	m_DebugWindow = 0;
+	m_TextureShader = 0;
 }
 
 
@@ -77,13 +78,11 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
 	//the direction of the light
 	m_Light->SetDirection(1.0f, 0.0f, 1.0f);
-
 	m_Light->SetAmbientColor(0.15f, 0.15f, 0.15f, 1.0f);
-
 	m_Light->SetSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
 	m_Light->SetSpecularPower(32.0f);
 
-	//****************************
+	//***************************/
 
 	// Create the camera object.
 	m_Camera = new CameraClass;
@@ -105,10 +104,38 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	// Initialize the model object.
 	result = m_Model->Initialize(m_D3D->GetDevice(), "./cube.txt", L"./seafloor.dds");
 
-
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
+		return false;
+	}
+
+	// Create the render to texture object.
+	m_RenderTexture = new RenderTextureClass;
+	if (!m_RenderTexture)
+	{
+		return false;
+	}
+
+	// Initialize the render to texture object.
+	result = m_RenderTexture->Initialize(m_D3D->GetDevice(), screenWidth, screenHeight);
+	if (!result)
+	{
+		return false;
+	}
+	
+	// Create the debug window object.
+	m_DebugWindow = new DebugWindowClass;
+	if (!m_DebugWindow)
+	{
+		return false;
+	}
+
+	// Initialize the debug window object.
+	result = m_DebugWindow->Initialize(m_D3D->GetDevice(), screenWidth, screenHeight, 100, 100);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the debug window object.", L"Error", MB_OK);
 		return false;
 	}
 
@@ -134,6 +161,30 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 
 void GraphicsClass::Shutdown()
 {
+	// Release the texture shader object.
+	if (m_TextureShader)
+	{
+		m_TextureShader->Shutdown();
+		delete m_TextureShader;
+		m_TextureShader = 0;
+	}
+
+		// Release the debug window object.
+		if (m_DebugWindow)
+		{
+			m_DebugWindow->Shutdown();
+			delete m_DebugWindow;
+			m_DebugWindow = 0;
+		}
+
+	// Release the render to texture object.
+	if (m_RenderTexture)
+	{
+		m_RenderTexture->Shutdown();
+		delete m_RenderTexture;
+		m_RenderTexture = 0;
+	}
+
 	// Release the light object.
 	if (m_Light)
 	{
@@ -147,21 +198,6 @@ void GraphicsClass::Shutdown()
 		m_LightShader->Shutdown();
 		delete m_LightShader;
 		m_LightShader = 0;
-	}
-
-	if (m_TextureShader)
-	{
-		m_TextureShader->Shutdown();
-		delete m_TextureShader;
-		m_TextureShader = 0;
-	}
-
-	// Release the color shader object.
-	if (m_ColorShader)
-	{
-		m_ColorShader->Shutdown();
-		delete m_ColorShader;
-		m_ColorShader = 0;
 	}
 
 	// Release the model object.
@@ -179,12 +215,14 @@ void GraphicsClass::Shutdown()
 		m_Camera = 0;
 	}
 
+	// Release the Direct3D object.
 	if (m_D3D)
 	{
 		m_D3D->Shutdown();
 		delete m_D3D;
 		m_D3D = 0;
 	}
+
 	return;
 }
 
@@ -204,7 +242,7 @@ bool GraphicsClass::Frame()
 
 
 	// Render the graphics scene.
-	result = Render(rotation);
+	result = Render();
 	if (!result)
 	{
 		return false;
@@ -213,41 +251,116 @@ bool GraphicsClass::Frame()
 }
 
 
-bool GraphicsClass::Render(float rotation)
+bool GraphicsClass::Render()
 {
-	D3DXMATRIX viewMatrix, projectionMatrix, worldMatrix;
+	D3DXMATRIX viewMatrix, projectionMatrix, worldMatrix, orthoMatrix;
 	bool result;
 
-
+	//The first pass of our render is to a texture now.
+	// Render the entire scene to the texture first.
+	result = RenderToTexture();
+	if (!result)
+	{
+		return false;
+	}
 	// Clear the buffers to begin the scene.
 	m_D3D->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
 
-	// Generate the view matrix based on the camera's position.
-	m_Camera->Render();
-
-	// Get the world, view, and projection matrices from the camera and d3d objects.
-	m_Camera->GetViewMatrix(viewMatrix);
-	m_D3D->GetWorldMatrix(worldMatrix);
-	m_D3D->GetProjectionMatrix(projectionMatrix);
-
-
-	// Rotate the world matrix by the rotation value so that the triangle will spin.
-	D3DXMatrixRotationY(&worldMatrix, rotation);
-	// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
-	m_Model->Render(m_D3D->GetDeviceContext());
-
-	// Render the model using the light shader.
-	result = m_LightShader->Render(m_D3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix,
-		m_Model->GetTexture(), m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(),
-		m_Camera->GetPosition(), m_Light->GetSpecularColor(), m_Light->GetSpecularPower());
-
+	// Render the scene as normal to the back buffer.
+	result = RenderScene();
 	if (!result)
 	{
 		return false;
 	}
 
-	// Present the rendered scene to the screen.
+	// Turn off the Z buffer to begin all 2D rendering.
+	m_D3D->TurnZBufferOff();
+	// Get the world, view, and ortho matrices from the camera and d3d objects.
+	m_D3D->GetWorldMatrix(worldMatrix);
+	m_Camera->GetViewMatrix(viewMatrix);
+	m_D3D->GetOrthoMatrix(orthoMatrix);
+	// Put the debug window vertex and index buffers on the graphics pipeline to prepare them for drawing.
+	result = m_DebugWindow->Render(m_D3D->GetDeviceContext(), 50, 50);
+	if (!result)
+	{
+		return false;
+	}
+	// Render the debug window using the texture shader.
+	result = m_TextureShader->Render(m_D3D->GetDeviceContext(), m_DebugWindow->GetIndexCount(), worldMatrix, viewMatrix,
+		orthoMatrix, m_RenderTexture->GetShaderResourceView());
+	if (!result)
+	{
+		return false;
+	}
+	// Turn the Z buffer back on now that all 2D rendering has completed.
+	m_D3D->TurnZBufferOn();
+
 	m_D3D->EndScene();
+
+	return true;
+}
+bool GraphicsClass::RenderToTexture()
+{
+	bool result;
+
+
+	// Set the render target to be the render to texture.
+	m_RenderTexture->SetRenderTarget(m_D3D->GetDeviceContext(), m_D3D->GetDepthStencilView());
+	//Clear the render to texture background to blue so we can differentiate it from the rest of the normal scene.
+
+	// Clear the render to texture.
+	m_RenderTexture->ClearRenderTarget(m_D3D->GetDeviceContext(), m_D3D->GetDepthStencilView(), 0.0f, 0.0f, 1.0f, 1.0f);
+
+	// Render the scene now and it will draw to the render to texture instead of the back buffer.
+	result = RenderScene();
+	if (!result)
+	{
+		return false;
+	}
+
+	// Reset the render target back to the original back buffer and not the render to texture anymore.
+	m_D3D->SetBackBufferRenderTarget();
+	return true;
+}
+
+
+bool GraphicsClass::RenderScene()
+{
+	D3DXMATRIX worldMatrix, viewMatrix, projectionMatrix;
+	bool result;
+	static float rotation = 0.0f;
+
+	// Generate the view matrix based on the camera's position.
+	m_Camera->Render();
+
+	// Get the world, view, and projection matrices from the camera and d3d objects.
+	m_D3D->GetWorldMatrix(worldMatrix);
+	m_Camera->GetViewMatrix(viewMatrix);
+	m_D3D->GetProjectionMatrix(projectionMatrix);
+
+	// Update the rotation variable each frame.
+	rotation += (float)D3DX_PI * 0.001f;
+	if (rotation > 360.0f)
+	{
+		rotation -= 360.0f;
+	}
+
+	D3DXMatrixRotationY(&worldMatrix, rotation);
+
+	// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
+	m_Model->Render(m_D3D->GetDeviceContext());
+
+	// Render the model using the light shader.
+
+
+	result = m_LightShader->Render(m_D3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix,
+		m_Model->GetTexture(), m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(),
+		m_Camera->GetPosition(), m_Light->GetSpecularColor(), m_Light->GetSpecularPower());
+	
+	if (!result)
+	{
+		return false;
+	}
 
 	return true;
 }

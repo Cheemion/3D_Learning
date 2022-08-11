@@ -8,10 +8,11 @@
 #include "d3dclass.h"
 #include "cameraclass.h"
 #include "modelclass.h"
-#include "colorshaderclass.h"
-#include "textureshaderclass.h"
 #include "lightshaderclass.h"
 #include "lightclass.h"
+#include "rendertextureclass.h"
+#include "debugwindowclass.h"
+#include "textureshaderclass.h"
 
 /////////////
 // GLOBALS //
@@ -34,19 +35,20 @@ public:
 	bool Initialize(int, int, HWND);
 	void Shutdown();
 	bool Frame();
-
+	bool Render();
+private:
+	bool RenderToTexture();
+	bool RenderScene();
 private:
 	D3DClass* m_D3D;
-	bool Render();
 	CameraClass* m_Camera;
 	ModelClass* m_Model;
-	ColorShaderClass* m_ColorShader;
-	bool Render(float);
-
-private:
-	TextureShaderClass* m_TextureShader;
 	LightShaderClass* m_LightShader;
 	LightClass* m_Light;
+	RenderTextureClass* m_RenderTexture;
+	DebugWindowClass* m_DebugWindow;
+	TextureShaderClass* m_TextureShader;
+
 };
 
 #endif
