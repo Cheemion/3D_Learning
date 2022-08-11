@@ -58,6 +58,4 @@ PixelInputType ReflectionVertexShader(VertexInputType input)
     output.reflectionPosition = mul(input.position, reflectProjectWorld);
 
     return output;
-    
-
 }

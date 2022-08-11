@@ -13,6 +13,7 @@
 #include "rendertextureclass.h"
 #include "debugwindowclass.h"
 #include "textureshaderclass.h"
+#include "reflectionshaderclass.h"
 
 /////////////
 // GLOBALS //
@@ -48,6 +49,8 @@ private:
 	RenderTextureClass* m_RenderTexture;
 	DebugWindowClass* m_DebugWindow;
 	TextureShaderClass* m_TextureShader;
+	ModelClass* m_FloorModel;
+	ReflectionShaderClass* m_ReflectionShader;
 
 };
 

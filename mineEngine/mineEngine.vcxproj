@@ -147,6 +147,7 @@
     <ClCompile Include="lightshaderclass.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="modelclass.cpp" />
+    <ClCompile Include="reflectionshaderclass.cpp" />
     <ClCompile Include="rendertextureclass.cpp" />
     <ClCompile Include="systemclass.cpp" />
     <ClCompile Include="textureclass.cpp" />
@@ -162,6 +163,7 @@
     <ClInclude Include="lightclass.h" />
     <ClInclude Include="lightshaderclass.h" />
     <ClInclude Include="modelclass.h" />
+    <ClInclude Include="reflectionshaderclass.h" />
     <ClInclude Include="rendertextureclass.h" />
     <ClInclude Include="systemclass.h" />
     <ClInclude Include="textureclass.h" />
@@ -172,6 +174,8 @@
     <None Include="color.vs" />
     <None Include="light.ps" />
     <None Include="light.vs" />
+    <None Include="reflection.ps" />
+    <None Include="reflection.vs" />
     <None Include="texture.ps" />
     <None Include="texture.vs" />
   </ItemGroup>
