@@ -1,4 +1,8 @@
+////////////////////////////////////////////////////////////////////////////////
+// Filename: modelclass.cpp
+////////////////////////////////////////////////////////////////////////////////
 #include "modelclass.h"
+
 
 ModelClass::ModelClass()
 {
@@ -6,7 +10,6 @@ ModelClass::ModelClass()
 	m_indexBuffer = 0;
 	m_Texture = 0;
 	m_model = 0;
-
 }
 
 
@@ -20,9 +23,11 @@ ModelClass::~ModelClass()
 }
 
 
-bool ModelClass::Initialize(ID3D11Device* device,char* modelFilename, WCHAR* textureFilename)
+bool ModelClass::Initialize(ID3D11Device* device, char* modelFilename, WCHAR* textureFilename)
 {
 	bool result;
+
+
 	// Load in the model data,
 	result = LoadModel(modelFilename);
 	if (!result)
@@ -30,8 +35,7 @@ bool ModelClass::Initialize(ID3D11Device* device,char* modelFilename, WCHAR* tex
 		return false;
 	}
 
-
-	// Initialize the vertex and index buffer that hold the geometry for the triangle.
+	// Initialize the vertex and index buffers.
 	result = InitializeBuffers(device);
 	if (!result)
 	{
@@ -45,24 +49,24 @@ bool ModelClass::Initialize(ID3D11Device* device,char* modelFilename, WCHAR* tex
 		return false;
 	}
 
-
 	return true;
 }
 
-ID3D11ShaderResourceView* ModelClass::GetTexture()
-{
-	return m_Texture->GetTexture();
-}
+
 void ModelClass::Shutdown()
 {
 	// Release the model texture.
 	ReleaseTexture();
-	// Release the vertex and index buffers.
+
+	// Shutdown the vertex and index buffers.
 	ShutdownBuffers();
+
 	// Release the model data.
 	ReleaseModel();
+
 	return;
 }
+
 
 void ModelClass::Render(ID3D11DeviceContext* deviceContext)
 {
@@ -78,7 +82,14 @@ int ModelClass::GetIndexCount()
 	return m_indexCount;
 }
 
-bool ModelClass::InitializeBuffers(ID3D11Device* device) 
+
+ID3D11ShaderResourceView* ModelClass::GetTexture()
+{
+	return m_Texture->GetTexture();
+}
+
+
+bool ModelClass::InitializeBuffers(ID3D11Device* device)
 {
 	VertexType* vertices;
 	unsigned long* indices;
@@ -88,13 +99,13 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 	int i;
 
 
-
 	// Create the vertex array.
 	vertices = new VertexType[m_vertexCount];
 	if (!vertices)
 	{
 		return false;
 	}
+
 	// Create the index array.
 	indices = new unsigned long[m_indexCount];
 	if (!indices)
@@ -112,26 +123,25 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 		indices[i] = i;
 	}
 
-
 	// Set up the description of the static vertex buffer.
-	vertexBufferDesc.ByteWidth = sizeof(VertexType) * m_vertexCount;
 	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	vertexBufferDesc.ByteWidth = sizeof(VertexType) * m_vertexCount;
 	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vertexBufferDesc.CPUAccessFlags = 0;
 	vertexBufferDesc.MiscFlags = 0;
 	vertexBufferDesc.StructureByteStride = 0;
-	//vertexBufferDesc.StructureByteStride = sizeof(VertexType);
+
 	// Give the subresource structure a pointer to the vertex data.
 	vertexData.pSysMem = vertices;
 	vertexData.SysMemPitch = 0;
 	vertexData.SysMemSlicePitch = 0;
+
 	// Now create the vertex buffer.
 	result = device->CreateBuffer(&vertexBufferDesc, &vertexData, &m_vertexBuffer);
 	if (FAILED(result))
 	{
 		return false;
 	}
-
 
 	// Set up the description of the static index buffer.
 	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -153,7 +163,6 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 		return false;
 	}
 
-
 	// Release the arrays now that the vertex and index buffers have been created and loaded.
 	delete[] vertices;
 	vertices = 0;
@@ -162,7 +171,6 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 	indices = 0;
 
 	return true;
-
 }
 
 
@@ -184,7 +192,6 @@ void ModelClass::ShutdownBuffers()
 
 	return;
 }
-
 
 
 void ModelClass::RenderBuffers(ID3D11DeviceContext* deviceContext)
@@ -210,16 +217,6 @@ void ModelClass::RenderBuffers(ID3D11DeviceContext* deviceContext)
 }
 
 
-
-
-
-
-
-
-
-
-
-
 bool ModelClass::LoadTexture(ID3D11Device* device, WCHAR* filename)
 {
 	bool result;
@@ -227,20 +224,21 @@ bool ModelClass::LoadTexture(ID3D11Device* device, WCHAR* filename)
 
 	// Create the texture object.
 	m_Texture = new TextureClass;
-	if(!m_Texture)
+	if (!m_Texture)
 	{
 		return false;
 	}
 
 	// Initialize the texture object.
 	result = m_Texture->Initialize(device, filename);
-	if(!result)
+	if (!result)
 	{
 		return false;
 	}
 
 	return true;
 }
+
 
 void ModelClass::ReleaseTexture()
 {
@@ -254,7 +252,9 @@ void ModelClass::ReleaseTexture()
 
 	return;
 }
-bool ModelClass::LoadModel(char* filename) 
+
+
+bool ModelClass::LoadModel(char* filename)
 {
 	ifstream fin;
 	char input;
@@ -269,20 +269,22 @@ bool ModelClass::LoadModel(char* filename)
 	{
 		return false;
 	}
+
 	// Read up to the value of vertex count.
 	fin.get(input);
 	while (input != ':')
 	{
 		fin.get(input);
 	}
+
 	// Read in the vertex count.
 	fin >> m_vertexCount;
+
 	// Set the number of indices to be the same as the vertex count.
 	m_indexCount = m_vertexCount;
 
 	// Create the model using the vertex count that was read in.
 	m_model = new ModelType[m_vertexCount];
-
 	if (!m_model)
 	{
 		return false;
@@ -311,6 +313,7 @@ bool ModelClass::LoadModel(char* filename)
 	return true;
 }
 
+
 void ModelClass::ReleaseModel()
 {
 	if (m_model)
@@ -322,3 +325,20 @@ void ModelClass::ReleaseModel()
 	return;
 }
 
+
+void ModelClass::SetPosition(float x, float y, float z)
+{
+	m_positionX = x;
+	m_positionY = y;
+	m_positionZ = z;
+	return;
+}
+
+
+void ModelClass::GetPosition(float& x, float& y, float& z)
+{
+	x = m_positionX;
+	y = m_positionY;
+	z = m_positionZ;
+	return;
+}

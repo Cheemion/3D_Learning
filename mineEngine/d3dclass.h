@@ -41,7 +41,7 @@ public:
 	void SetBackBufferRenderTarget();
 	void TurnZBufferOn();
 	void TurnZBufferOff();
-
+	void ResetViewport();
 
 private:
 	bool m_vsync_enabled;
@@ -55,7 +55,7 @@ private:
 	ID3D11DepthStencilState* m_depthStencilState;
 	ID3D11DepthStencilView* m_depthStencilView;
 	ID3D11RasterizerState* m_rasterState;
-
+	D3D11_VIEWPORT m_viewport;
 
 	D3DXMATRIX m_projectionMatrix;
 	D3DXMATRIX m_worldMatrix;
@@ -64,5 +64,4 @@ private:
 	ID3D11DepthStencilState* m_depthDisabledStencilState;
 
 };
-
 #endif
