@@ -1,3 +1,6 @@
+////////////////////////////////////////////////////////////////////////////////
+// Filename: lightclass.cpp
+////////////////////////////////////////////////////////////////////////////////
 #include "lightclass.h"
 
 
@@ -36,6 +39,7 @@ void LightClass::SetPosition(float x, float y, float z)
 	return;
 }
 
+
 void LightClass::SetLookAt(float x, float y, float z)
 {
 	m_lookAt.x = x;
@@ -62,6 +66,7 @@ D3DXVECTOR3 LightClass::GetPosition()
 	return m_position;
 }
 
+
 void LightClass::GenerateViewMatrix()
 {
 	D3DXVECTOR3 up;
@@ -74,9 +79,10 @@ void LightClass::GenerateViewMatrix()
 
 	// Create the view matrix from the three vectors.
 	D3DXMatrixLookAtLH(&m_viewMatrix, &m_position, &m_lookAt, &up);
-
+	
 	return;
 }
+
 
 void LightClass::GenerateProjectionMatrix(float screenDepth, float screenNear)
 {
@@ -93,40 +99,16 @@ void LightClass::GenerateProjectionMatrix(float screenDepth, float screenNear)
 	return;
 }
 
-void LightClass::GetViewMatrix(D3DXMATRIX & viewMatrix)
+
+void LightClass::GetViewMatrix(D3DXMATRIX& viewMatrix)
 {
 	viewMatrix = m_viewMatrix;
 	return;
 }
 
 
-void LightClass::GetProjectionMatrix(D3DXMATRIX & projectionMatrix)
+void LightClass::GetProjectionMatrix(D3DXMATRIX& projectionMatrix)
 {
 	projectionMatrix = m_projectionMatrix;
 	return;
 }
-
-
-void LightClass::SetSpecularColor(float red, float green, float blue, float alpha)
-{
-	m_specularColor = D3DXVECTOR4(red, green, blue, alpha);
-	return;
-}
-
-
-void LightClass::SetSpecularPower(float power)
-{
-	m_specularPower = power;
-	return;
-}
-D3DXVECTOR4 LightClass::GetSpecularColor()
-{
-	return m_specularColor;
-}
-
-
-float LightClass::GetSpecularPower()
-{
-	return m_specularPower;
-}
-

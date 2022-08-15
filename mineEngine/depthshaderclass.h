@@ -3,6 +3,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 #ifndef _DEPTHSHADERCLASS_H_
 #define _DEPTHSHADERCLASS_H_
+
+
 //////////////
 // INCLUDES //
 //////////////
@@ -11,6 +13,7 @@
 #include <d3dx11async.h>
 #include <fstream>
 using namespace std;
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: DepthShaderClass
@@ -24,6 +27,7 @@ private:
 		D3DXMATRIX view;
 		D3DXMATRIX projection;
 	};
+
 public:
 	DepthShaderClass();
 	DepthShaderClass(const DepthShaderClass&);

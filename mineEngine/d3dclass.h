@@ -1,15 +1,27 @@
+////////////////////////////////////////////////////////////////////////////////
+// Filename: d3dclass.h
+////////////////////////////////////////////////////////////////////////////////
 #ifndef _D3DCLASS_H_
 #define _D3DCLASS_H_
+
+
+/////////////
+// LINKING //
+/////////////
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "d3dx11.lib")
 #pragma comment(lib, "d3dx10.lib")
 
 
+//////////////
+// INCLUDES //
+//////////////
 #include <dxgi.h>
 #include <d3dcommon.h>
 #include <d3d11.h>
 #include <d3dx10math.h>
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: D3DClass
@@ -23,7 +35,7 @@ public:
 
 	bool Initialize(int, int, bool, HWND, bool, float, float);
 	void Shutdown();
-
+	
 	void BeginScene(float, float, float, float);
 	void EndScene();
 
@@ -36,11 +48,7 @@ public:
 
 	void GetVideoCardInfo(char*, int&);
 
-
-	ID3D11DepthStencilView* GetDepthStencilView();
 	void SetBackBufferRenderTarget();
-	void TurnZBufferOn();
-	void TurnZBufferOff();
 	void ResetViewport();
 
 private:
@@ -55,13 +63,10 @@ private:
 	ID3D11DepthStencilState* m_depthStencilState;
 	ID3D11DepthStencilView* m_depthStencilView;
 	ID3D11RasterizerState* m_rasterState;
-	D3D11_VIEWPORT m_viewport;
-
 	D3DXMATRIX m_projectionMatrix;
 	D3DXMATRIX m_worldMatrix;
 	D3DXMATRIX m_orthoMatrix;
-
-	ID3D11DepthStencilState* m_depthDisabledStencilState;
-
+	D3D11_VIEWPORT m_viewport;
 };
+
 #endif

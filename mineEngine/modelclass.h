@@ -29,7 +29,7 @@ private:
 	struct VertexType
 	{
 		D3DXVECTOR3 position;
-		D3DXVECTOR2 texture;
+	    D3DXVECTOR2 texture;
 		D3DXVECTOR3 normal;
 	};
 
@@ -67,7 +67,7 @@ private:
 	void ReleaseModel();
 
 private:
-	ID3D11Buffer* m_vertexBuffer, * m_indexBuffer;
+	ID3D11Buffer *m_vertexBuffer, *m_indexBuffer;
 	int m_vertexCount, m_indexCount;
 	TextureClass* m_Texture;
 	ModelType* m_model;
