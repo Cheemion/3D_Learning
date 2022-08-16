@@ -86,9 +86,10 @@ void LightClass::GenerateViewMatrix()
 
 void LightClass::GenerateProjectionMatrix(float screenDepth, float screenNear)
 {
+
+
 	float fieldOfView, screenAspect;
-
-
+	
 	// Setup field of view and screen aspect for a square light source.
 	fieldOfView = (float)D3DX_PI/2;
 	screenAspect = 1.0f;
