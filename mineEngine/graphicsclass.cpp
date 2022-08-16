@@ -253,22 +253,22 @@ void GraphicsClass::Shutdown()
 bool GraphicsClass::Frame(float posX, float posY, float posZ, float rotX, float rotY, float rotZ)
 {
 	bool result;
-	static float lightPositionX = -5.0f;
+	static float radium = 5;
+	static float pp = 0;
 
 
 	// Set the position of the camera.
 	m_Camera->SetPosition(posX, posY, posZ);
 	m_Camera->SetRotation(rotX, rotY, rotZ);
-
+	
+	pp = pp + 0.01;
+	if (pp > 2 * 3.1415926)
+		pp = 0;
 	// Update the position of the light each frame.
-	lightPositionX += 0.05f;
-	if(lightPositionX > 5.0f)
-	{
-		lightPositionX = -5.0f;
-	}
-
+	
+	
 	// Update the position of the light.
-	m_Light->SetPosition(lightPositionX, 8.0f, -5.0f);
+	m_Light->SetPosition(radium * sin(pp),10, radium * cos(pp));
 
 	// Render the graphics scene.
 	result = Render();

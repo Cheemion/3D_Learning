@@ -4,7 +4,7 @@
 #ifndef _DEPTHSHADERCLASS_H_
 #define _DEPTHSHADERCLASS_H_
 
-
+ 
 //////////////
 // INCLUDES //
 //////////////
