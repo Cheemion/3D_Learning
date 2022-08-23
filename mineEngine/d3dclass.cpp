@@ -342,9 +342,6 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
     // Initialize the world matrix to the identity matrix.
     D3DXMatrixIdentity(&m_worldMatrix);
 
-	// Create an orthographic projection matrix for 2D rendering.
-	D3DXMatrixOrthoLH(&m_orthoMatrix, (float)screenWidth, (float)screenHeight, screenNear, screenDepth);
-
     return true;
 }
 

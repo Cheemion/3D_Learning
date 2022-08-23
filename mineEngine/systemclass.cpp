@@ -88,7 +88,7 @@ bool SystemClass::Initialize()
 	}
 
 	// Set the initial position of the viewer to the same as the initial camera position.
-	m_Position->SetPosition(0.0f, 5.0f, -10.0f);
+	m_Position->SetPosition(0.0f, 50.0f, -200.0f);
 
 	return true;
 }

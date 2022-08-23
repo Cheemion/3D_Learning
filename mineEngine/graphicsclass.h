@@ -15,6 +15,7 @@
 #include "rendertextureclass.h"
 #include "depthshaderclass.h"
 #include "shadowshaderclass.h"
+#include "textureshaderclass.h"
 
 
 /////////////
@@ -54,6 +55,7 @@ private:
 	RenderTextureClass* m_RenderTexture;
 	DepthShaderClass* m_DepthShader;
 	ShadowShaderClass* m_ShadowShader;
+	TextureShaderClass* m_TextureShader;
 };
 
 #endif
