@@ -13,6 +13,8 @@ cbuffer MatrixBuffer
 	matrix projectionMatrix;
 	matrix lightViewMatrix;
 	matrix lightProjectionMatrix;
+	matrix lightViewMatrix2;
+	matrix lightProjectionMatrix2;
 };
 
 
@@ -23,6 +25,8 @@ cbuffer LightBuffer2
 {
     float3 lightPosition;
 	float padding;
+	float3 lightPosition2;
+    float padding2;
 };
 
 
@@ -43,6 +47,8 @@ struct PixelInputType
 	float3 normal : NORMAL;
     float4 lightViewPosition : TEXCOORD1;
 	float3 lightPos : TEXCOORD2;
+	float4 lightViewPosition2 : TEXCOORD3;
+    float3 lightPos2 : TEXCOORD4;
 };
 
 
@@ -63,10 +69,16 @@ PixelInputType ShadowVertexShader(VertexInputType input)
     output.position = mul(output.position, viewMatrix);
     output.position = mul(output.position, projectionMatrix);
     
-	// Calculate the position of the vertice as viewed by the light source.
+	// Calculate the first position of the vertice as viewed by the light source.
     output.lightViewPosition = mul(input.position, worldMatrix);
     output.lightViewPosition = mul(output.lightViewPosition, lightViewMatrix);
     output.lightViewPosition = mul(output.lightViewPosition, lightProjectionMatrix);
+
+   //Calculate the second position as viewed by the light source
+	output.lightViewPosition2 = mul(input.position, worldMatrix);
+	output.lightViewPosition2 = mul(output.lightViewPosition2, lightViewMatrix2);
+    output.lightViewPosition2 = mul(output.lightViewPosition2, lightProjectionMatrix2);
+    
 
 	// Store the texture coordinates for the pixel shader.
     output.tex = input.tex;
@@ -85,6 +97,13 @@ PixelInputType ShadowVertexShader(VertexInputType input)
 
     // Normalize the light position vector.
     output.lightPos = normalize(output.lightPos);
+
+	// Determine the second light position based on the position of the light and the position of the vertex in the world.
+    output.lightPos2 = lightPosition2.xyz - worldPosition.xyz;
+
+    // Normalize the second light position vector.
+    output.lightPos2 = normalize(output.lightPos2);
+
 
 	return output;
 }

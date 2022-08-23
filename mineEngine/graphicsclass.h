@@ -45,17 +45,21 @@ public:
 
 private:
 	bool RenderSceneToTexture();
+	bool RenderSceneToTexture2();
+
 	bool Render();
 
 private:
 	D3DClass* m_D3D;
 	CameraClass* m_Camera;
-	ModelClass *m_TreeModel, *m_GroundModel, *m_SphereModel;
+	ModelClass *m_TreeModel, *m_GroundModel, *m_SphereModel, *m_SphereModel2;
 	LightClass* m_Light;
 	RenderTextureClass* m_RenderTexture;
 	DepthShaderClass* m_DepthShader;
 	ShadowShaderClass* m_ShadowShader;
 	TextureShaderClass* m_TextureShader;
+	LightClass* m_Light2;
+	RenderTextureClass* m_RenderTexture2;
 };
 
 #endif

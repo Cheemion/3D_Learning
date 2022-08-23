@@ -11,11 +11,14 @@ GraphicsClass::GraphicsClass()
 	m_TreeModel = 0;
 	m_GroundModel = 0;
 	m_SphereModel = 0;
+	m_SphereModel2 = 0;
 	m_Light = 0;
 	m_RenderTexture = 0;
 	m_DepthShader = 0;	
 	m_ShadowShader = 0;
 	m_TextureShader = 0;
+	m_Light2 = 0;
+	m_RenderTexture2 = 0;
 }
 
 
@@ -75,6 +78,11 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	m_TreeModel->SetPosition(-3.0f, 0.0f, 0.0f);
 
 	// Create the sphere model object.
+	m_SphereModel2 = new ModelClass;
+	if(!m_SphereModel2)
+	{
+		return false;
+	}
 	m_SphereModel = new ModelClass;
 	if(!m_SphereModel)
 	{
@@ -86,16 +94,20 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	
 	*/
 
+	result = m_SphereModel2->Initialize(m_D3D->GetDevice(), "./sphere.txt", L"./ice.dds");
+	if(!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the sphere model object.", L"Error", MB_OK);
+		return false;
+	}
 	// Initialize the sphere model object.
-	result = m_SphereModel->Initialize(m_D3D->GetDevice(), "./sphere.txt", L"./ice.dds");
+	result = m_SphereModel->Initialize(m_D3D->GetDevice(), "./sphere.txt", L"./redmoon.jpg");
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the sphere model object.", L"Error", MB_OK);
 		return false;
 	}
 
-	// Set the position for the sphere model.
-	m_SphereModel->SetPosition(10.0f, 10.0f, 0.0f);
 
 	// Create the ground model object.
 	m_GroundModel = new ModelClass;
@@ -187,12 +199,57 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		MessageBox(hwnd, L"Could not initialize the depth shader object.", L"Error", MB_OK);
 		return false;
 	}
+
+
+	// second light
+	// Create the second light object.
+	m_Light2 = new LightClass;
+	if (!m_Light2)
+	{
+		return false;
+	}
+
+	// Initialize the second light object.
+	m_Light2->SetDiffuseColor(0.0f, 0.0f, 1.0f, 1.0f);
+	m_Light2->SetLookAt(0.0f, 0.0f, 0.0f);
+	m_Light2->GenerateProjectionMatrix(SCREEN_DEPTH, SCREEN_NEAR);
+
+	// Create the second render to texture object.
+	m_RenderTexture2 = new RenderTextureClass;
+	if (!m_RenderTexture2)
+	{
+		return false;
+	}
+
+	// Initialize the second render to texture object.
+	result = m_RenderTexture2->Initialize(m_D3D->GetDevice(), SHADOWMAP_WIDTH, SHADOWMAP_HEIGHT, SCREEN_DEPTH, SCREEN_NEAR);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the second render to texture object.", L"Error", MB_OK);
+		return false;
+	}
 	return true;
 }
 
 
 void GraphicsClass::Shutdown()
 {
+
+	// Release the second render to texture object.
+	if (m_RenderTexture2)
+	{
+		m_RenderTexture2->Shutdown();
+		delete m_RenderTexture2;
+		m_RenderTexture2 = 0;
+	}
+
+	// Release the second light object.
+	if (m_Light2)
+	{
+		delete m_Light2;
+		m_Light2 = 0;
+	}
+
 	// Release the shadow shader object.
 	if(m_ShadowShader)
 	{
@@ -232,6 +289,13 @@ void GraphicsClass::Shutdown()
 		m_GroundModel = 0;
 	}
 
+	// Release the sphere model object.
+	if(m_SphereModel2)
+	{
+		m_SphereModel2->Shutdown();
+		delete m_SphereModel2;
+		m_SphereModel2 = 0;
+	}
 	// Release the sphere model object.
 	if(m_SphereModel)
 	{
@@ -283,9 +347,12 @@ bool GraphicsClass::Frame(float posX, float posY, float posZ, float rotX, float 
 		pp = 0;
 	// Update the position of the light each frame.
 	
-	
 	m_Light->SetPosition(radium * sin(pp), radium * cos(pp) , 0);
+	m_Light2->SetPosition(0, radium * sin(pp), radium * cos(pp));
+	// Set the position of the second light.
+	
 	m_SphereModel->SetPosition(radium * sin(pp),  radium * cos(pp) ,0);
+	m_SphereModel2->SetPosition(0, radium * sin(pp),  radium * cos(pp));
 	// Update the position of the light.
 	/*
 	
@@ -301,6 +368,85 @@ bool GraphicsClass::Frame(float posX, float posY, float posZ, float rotX, float 
 	}
 
 	return true;
+}
+
+bool GraphicsClass::RenderSceneToTexture2()
+{
+	D3DXMATRIX worldMatrix, lightViewMatrix, lightProjectionMatrix;
+	float posX, posY, posZ;
+	bool result;
+
+
+	// Set the render target to be the render to texture.
+	m_RenderTexture2->SetRenderTarget(m_D3D->GetDeviceContext());
+
+	// Clear the render to texture.
+	m_RenderTexture2->ClearRenderTarget(m_D3D->GetDeviceContext(), 0.0f, 0.0f, 0.0f, 1.0f);
+
+
+	// Generate the light view matrix based on the light's position.
+	m_Light2->GenerateViewMatrix();
+
+	// Get the world matrix from the d3d object.
+	m_D3D->GetWorldMatrix(worldMatrix);
+
+	// Get the view and orthographic matrices from the light object.
+	m_Light2->GetViewMatrix(lightViewMatrix);
+	m_Light2->GetProjectionMatrix(lightProjectionMatrix);
+
+	// Setup the translation matrix for the cube model.
+	m_TreeModel->GetPosition(posX, posY, posZ);
+	D3DXMatrixTranslation(&worldMatrix, posX, posY, posZ);
+
+	// Render the tree model with the depth shader.
+	m_TreeModel->Render(m_D3D->GetDeviceContext());
+	result = m_DepthShader->Render(m_D3D->GetDeviceContext(), m_TreeModel->GetIndexCount(), worldMatrix, lightViewMatrix, lightProjectionMatrix);
+	if (!result)
+	{
+		return false;
+	}
+
+
+	/*
+
+	// Reset the world matrix.
+	m_D3D->GetWorldMatrix(worldMatrix);
+
+	// Setup the translation matrix for the sphere model.
+	m_SphereModel->GetPosition(posX, posY, posZ);
+	D3DXMatrixTranslation(&worldMatrix, posX, posY, posZ);
+
+	// Render the sphere model with the depth shader.
+	m_SphereModel->Render(m_D3D->GetDeviceContext());
+	result = m_DepthShader->Render(m_D3D->GetDeviceContext(), m_SphereModel->GetIndexCount(), worldMatrix, lightViewMatrix, lightProjectionMatrix);
+	if(!result)
+	{
+		return false;
+	}
+	*/
+
+
+	// Reset the world matrix.
+	m_D3D->GetWorldMatrix(worldMatrix);
+
+	// Setup the translation matrix for the ground model.
+	m_GroundModel->GetPosition(posX, posY, posZ);
+	D3DXMatrixTranslation(&worldMatrix, posX, posY, posZ);
+
+	// Render the ground model with the depth shader.
+	m_GroundModel->Render(m_D3D->GetDeviceContext());
+	result = m_DepthShader->Render(m_D3D->GetDeviceContext(), m_GroundModel->GetIndexCount(), worldMatrix, lightViewMatrix, lightProjectionMatrix);
+	if (!result)
+	{
+		return false;
+	}
+
+
+	// Reset the render target back to the original back buffer and not the render to texture anymore.
+	m_D3D->SetBackBufferRenderTarget();
+
+	// Reset the viewport back to the original.
+	m_D3D->ResetViewport();
 }
 
 
@@ -391,6 +537,8 @@ bool GraphicsClass::Render()
 {
 	D3DXMATRIX worldMatrix, viewMatrix, projectionMatrix, translateMatrix;
 	D3DXMATRIX lightViewMatrix, lightProjectionMatrix;
+	D3DXMATRIX lightViewMatrix2, lightProjectionMatrix2;
+
 	bool result;
 	float posX, posY, posZ;
 
@@ -398,6 +546,13 @@ bool GraphicsClass::Render()
 	// First render the scene to a texture.
 	result = RenderSceneToTexture();
 	if(!result)
+	{
+		return false;
+	}
+
+	// Render the scene to texture again but use the second light's view point.
+	result = RenderSceneToTexture2();
+	if (!result)
 	{
 		return false;
 	}
@@ -414,7 +569,8 @@ bool GraphicsClass::Render()
 	*/
 	// Generate the light view matrix based on the light's position.
 	m_Light->GenerateViewMatrix();
-
+	// Do the same for the second light.
+	m_Light2->GenerateViewMatrix();
 	// Get the world, view, and projection matrices from the camera and d3d objects.
 	m_Camera->GetViewMatrix(viewMatrix);
 	m_D3D->GetWorldMatrix(worldMatrix);
@@ -423,6 +579,10 @@ bool GraphicsClass::Render()
 	// Get the light's view and projection matrices from the light object.
 	m_Light->GetViewMatrix(lightViewMatrix);
 	m_Light->GetProjectionMatrix(lightProjectionMatrix);
+
+	// Do the same for the second light.
+	m_Light2->GetViewMatrix(lightViewMatrix2);
+	m_Light2->GetProjectionMatrix(lightProjectionMatrix2);
 
 	// Setup the translation matrix for the cube model.
 	m_TreeModel->GetPosition(posX, posY, posZ);
@@ -433,8 +593,9 @@ bool GraphicsClass::Render()
 
 	// Render the model using the shadow shader.
 	result = m_ShadowShader->Render(m_D3D->GetDeviceContext(), m_TreeModel->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, lightViewMatrix,
-									lightProjectionMatrix, m_TreeModel->GetTexture(), m_RenderTexture->GetShaderResourceView(), m_Light->GetPosition(),
-									m_Light->GetAmbientColor(), m_Light->GetDiffuseColor());
+		lightProjectionMatrix, m_TreeModel->GetTexture(), m_RenderTexture->GetShaderResourceView(), m_Light->GetPosition(),
+		m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), lightViewMatrix2, lightProjectionMatrix2,
+		m_RenderTexture2->GetShaderResourceView(), m_Light2->GetPosition(), m_Light2->GetDiffuseColor());
 	if(!result)
 	{
 		return false;
@@ -453,17 +614,33 @@ bool GraphicsClass::Render()
 	// Render the ground model using the shadow shader.
 	m_GroundModel->Render(m_D3D->GetDeviceContext());
 	result = m_ShadowShader->Render(m_D3D->GetDeviceContext(), m_GroundModel->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, lightViewMatrix,
-									lightProjectionMatrix, m_GroundModel->GetTexture(), m_RenderTexture->GetShaderResourceView(), m_Light->GetPosition(), 
-									m_Light->GetAmbientColor(), m_Light->GetDiffuseColor());
+		lightProjectionMatrix, m_GroundModel->GetTexture(), m_RenderTexture->GetShaderResourceView(), m_Light->GetPosition(),
+		m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), lightViewMatrix2, lightProjectionMatrix2,
+		m_RenderTexture2->GetShaderResourceView(), m_Light2->GetPosition(), m_Light2->GetDiffuseColor());
 	if(!result)
 	{
 		return false;
 	}
 
 
+	//render the moon
+	// Reset the world matrix.
+	m_D3D->GetWorldMatrix(worldMatrix);
+	// Setup the translation matrix for the sphere model.
+	m_SphereModel2->GetPosition(posX, posY, posZ);
+	D3DXMatrixTranslation(&worldMatrix, posX, posY, posZ);
+	// Scale the moon
+	worldMatrix._11 = 4.0f;
+	worldMatrix._22 = 4.0f;
+	worldMatrix._33 = 4.0f;
+	m_SphereModel2->Render(m_D3D->GetDeviceContext());
+	result = m_TextureShader->Render(m_D3D->GetDeviceContext(), m_SphereModel2->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_SphereModel2->GetTexture());
+	if(!result)
+	{
+		return false;
+	}
 
-
-	
+	//render the moon
 	// Reset the world matrix.
 	m_D3D->GetWorldMatrix(worldMatrix);
 	// Setup the translation matrix for the sphere model.
