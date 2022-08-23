@@ -42,6 +42,8 @@ struct PixelInputType
 	float3 lightPos : TEXCOORD2;
 	float4 lightViewPosition2 : TEXCOORD3;
     float3 lightPos2 : TEXCOORD4;
+    float distance1 :TEXCOORD5;
+    float distance2 :TEXCOORD6;
 };
 
 
@@ -91,7 +93,7 @@ float4 ShadowPixelShader(PixelInputType input) : SV_TARGET
 		    if(lightIntensity > 0.0f)
 			{
 				// Determine the final diffuse color based on the diffuse color and the amount of light intensity.
-				color += (diffuseColor * lightIntensity);
+				color += (10000 * diffuseColor / input.distance1 / input.distance1 * lightIntensity);
 
 				// Saturate the final light color.
 				color = saturate(color);
@@ -116,7 +118,7 @@ float4 ShadowPixelShader(PixelInputType input) : SV_TARGET
             lightIntensity = saturate(dot(input.normal, input.lightPos2));
             if(lightIntensity > 0.0f)
             {
-                color += (diffuseColor2 * lightIntensity);
+				color += (10000 * diffuseColor2 / input.distance2 / input.distance2 * lightIntensity);
             }
         }
     }

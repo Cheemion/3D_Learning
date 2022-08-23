@@ -49,6 +49,8 @@ struct PixelInputType
 	float3 lightPos : TEXCOORD2;
 	float4 lightViewPosition2 : TEXCOORD3;
     float3 lightPos2 : TEXCOORD4;
+    float distance1 : TEXCOORD5;
+    float distance2 : TEXCOORD6;
 };
 
 
@@ -91,6 +93,10 @@ PixelInputType ShadowVertexShader(VertexInputType input)
 
     // Calculate the position of the vertex in the world.
     worldPosition = mul(input.position, worldMatrix);
+    
+    output.distance1 = distance(lightPosition.xyz ,worldPosition.xyz);
+
+    output.distance2 = distance(lightPosition2.xyz ,worldPosition.xyz);
 
     // Determine the light position based on the position of the light and the position of the vertex in the world.
     output.lightPos = lightPosition.xyz - worldPosition.xyz;
