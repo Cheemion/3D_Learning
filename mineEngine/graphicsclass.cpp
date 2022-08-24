@@ -10,6 +10,7 @@ GraphicsClass::GraphicsClass()
 	m_Camera = 0;
 	m_TreeModel = 0;
 	m_GroundModel = 0;
+	m_Skybox = 0;
 	m_SphereModel = 0;
 	m_SphereModel2 = 0;
 	m_Light = 0;
@@ -108,6 +109,22 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
+	// Create the ground model object.
+	m_Skybox = new ModelClass;
+	if(!m_Skybox)
+	{
+		return false;
+	}
+
+	// Initialize the ground model object.
+	result = m_Skybox->Initialize(m_D3D->GetDevice(), "./skybox.txt", L"./skybox.jpg");
+	if(!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the ground model object.", L"Error", MB_OK);
+		return false;
+	}
+
+	m_Skybox->SetPosition(0.0f, 0.0f, 0.0f);
 
 	// Create the ground model object.
 	m_GroundModel = new ModelClass;
@@ -281,6 +298,12 @@ void GraphicsClass::Shutdown()
 		m_Light = 0;
 	}
 
+	if(m_Skybox)
+	{
+		m_Skybox->Shutdown();
+		delete m_Skybox;
+		m_Skybox = 0;
+	}
 	// Release the ground model object.
 	if(m_GroundModel)
 	{
@@ -622,6 +645,10 @@ bool GraphicsClass::Render()
 		return false;
 	}
 
+	/*
+		draw the sky box	
+	*/
+
 
 	//render the moon
 	// Reset the world matrix.
@@ -657,6 +684,19 @@ bool GraphicsClass::Render()
 		return false;
 	}
 	
+
+	//render the sky
+	// Reset the world matrix.
+	m_D3D->GetWorldMatrix(worldMatrix);
+	// Setup the translation matrix for the sphere model.
+	m_Skybox->GetPosition(posX, posY, posZ);
+	D3DXMatrixTranslation(&worldMatrix, posX, posY, posZ);
+	m_Skybox->Render(m_D3D->GetDeviceContext());
+	result = m_TextureShader->Render(m_D3D->GetDeviceContext(), m_Skybox->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Skybox->GetTexture());
+	if(!result)
+	{
+		return false;
+	}
 
 	// Present the rendered scene to the screen.
 	m_D3D->EndScene();

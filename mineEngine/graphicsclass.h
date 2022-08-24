@@ -52,7 +52,7 @@ private:
 private:
 	D3DClass* m_D3D;
 	CameraClass* m_Camera;
-	ModelClass *m_TreeModel, *m_GroundModel, *m_SphereModel, *m_SphereModel2;
+	ModelClass *m_TreeModel, *m_GroundModel, *m_SphereModel, *m_SphereModel2, *m_Skybox;
 	LightClass* m_Light;
 	RenderTextureClass* m_RenderTexture;
 	DepthShaderClass* m_DepthShader;
